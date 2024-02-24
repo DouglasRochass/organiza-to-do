@@ -12,7 +12,7 @@ import Tarefa from "../components/cards/tarefa";
 import React, { useEffect, useState } from "react";
 
 export default function Home({}) {
-  
+  const nav = useNavigation()
   return (
     <>
       <View>

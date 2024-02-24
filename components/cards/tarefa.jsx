@@ -102,7 +102,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native"; // Importe TouchableOpacity para tornar a View clicável
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native"; // Importe TouchableOpacity para tornar a View clicável
 import { useNavigation } from "@react-navigation/native";
 import { getTasks } from "../.././service/tarefas";
 import { axios } from "axios";
@@ -111,7 +111,7 @@ import { axios } from "axios";
 export default function Tarefa() {
   const [error, setError] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [tarefas, setTarefas] = useState([]);
+  const [tarefas, setTarefas] = useState({ tasks: [] });
   const nav = useNavigation();
 
   useEffect(() => {
@@ -123,29 +123,43 @@ export default function Tarefa() {
         return response.json();
       })
       .then(data => {
-        console.log("Dados da API:", data);
+        // Remover informações de hora das datas
+        const tarefasComDataAjustada = data.tasks.map(tarefa => ({
+          ...tarefa,
+          data: tarefa.data.split('T')[0] // Mantém apenas a parte da data
+          
+        }));
         setIsLoaded(true);
-        setTarefas(data);
+        setTarefas(prevTarefas => ({
+          tasks: [...prevTarefas.tasks, ...tarefasComDataAjustada]
+        }));
       })
       .catch(error => {
-        setIsLoaded(true);
         setError(error);
+        setIsLoaded(true);
       });
   }, []);
+  useEffect(() => {
+    console.log('Tarefas atualizadas:', tarefas);
+  }, [tarefas]);
 
   const navigateToTarefaAberta = (tarefa) => {
     nav.navigate("tarefaAberta");
   };
 
+  console.log("Error:", error);
+  console.log("Is Loaded:", isLoaded);
+  console.log("Tarefas:", tarefas);
+
   if (error) {
     return <View><Text>Erro: {error.message}</Text></View>;
   } else if (!isLoaded) {
     return <View><Text style={style.backgroundText}>Carregando...</Text></View>;
-  } else {
+  } else if (tarefas.tasks.length > 0) {
     return (
-      <View>
-        {Array.isArray(tarefas) && tarefas.map((tarefa) => (
-          <TouchableOpacity key={tarefa._id} onPress={() => navigateToTarefaAberta(tarefa)}>
+      <ScrollView>
+        {tarefas.tasks.map((tarefa, index) => (
+          <TouchableOpacity key={index} onPress={() => navigateToTarefaAberta(tarefa)}>
             <View style={style.cardContainer}>
               <View style={style.nameContainer}>
                 <Text style={style.taskName}>{tarefa.titulo}</Text>
@@ -159,10 +173,17 @@ export default function Tarefa() {
             </View>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
     );
+  } else {
+    return <Text style={style.backgroundText}>Nenhuma tarefa encontrada.</Text>;
   }
 }
+
+
+
+
+
 const style = StyleSheet.create({
   cardContainer: {
     backgroundColor: "#FFF",
