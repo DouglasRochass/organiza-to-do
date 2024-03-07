@@ -36,15 +36,31 @@ A squad como um todo aprendeu mais sobre o trabalho em equipe, divisão de taref
 | :---------- | :--------- | :---------------------------------- |
 | `api_key` | `string` | **Obrigatório**. A chave da sua API |
 
-#### Retorna um item
+
+
+
+
+
 
 ```http
-  GET /api/items/${id}
+  PUT /api/{id}
 ```
-
 | Parâmetro   | Tipo       | Descrição                                   |
 | :---------- | :--------- | :------------------------------------------ |
 | `id`      | `string` | **Obrigatório**. O ID do item que você quer |
 
+#### Edita um item
+
+
+
+
+```http
+  DELETE /api/{id}
+```
+| Parâmetro   | Tipo       | Descrição                                   |
+| :---------- | :--------- | :------------------------------------------ |
+| `id`      | `string` | **Obrigatório**. O ID do item que você quer |
+
+#### Deleta um item
 
 
