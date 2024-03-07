@@ -8,29 +8,104 @@ import {
   Modal,
 } from "react-native";
 import { DatePickerInput } from "react-native-paper-dates";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Logo from "../components/logo";
 import SelectDropdown from "react-native-select-dropdown";
 import { Button } from "react-native-elements";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { ButtonGroup } from "@rneui/themed";
+
+
 
 export default function TarefaAberta() {
   //as categorias possiveis pra tarefa (por padrao ta pessoal)
   const categoria = ["Pessoal", "Estudo", "Trabalho", "Outro"];
-
+  const route = useRoute();
+  const { taskId } = route.params;
   //useState para escolher a prioridade da tarefa
-  const [selectedIndex, setSelectedIndex] = useState([0, 2, 3]);
-
   //useState pra escolher a data
-  const [inputData, setInputData] = useState(undefined);
+  const [selectedIndex, setSelectedIndex] = useState(0); // Altere para useState(0)
+  const [inputData, setInputData] = useState(''); // Altere para useState('')
+  const [descricao, setDescricao] = useState(''); // Adicione useState('')
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState(''); // Adicione useState('')
+  const [prioridadeSelecionada, setPrioridadeSelecionada] = useState(''); // Adicione useState('')
 
   //useNavigation pra navegar
   const nav = useNavigation();
-
   //usestate para abrir a modal de confirmação de exclusão
   const [isOpen, setIsOpen] = useState(false);
 
+  const handleDeleteTask = (taskId) => {
+    if (!taskId) {
+      console.error("ID da tarefa inválido");
+      return;
+    }
+  
+    fetch(`http://10.0.0.100:4000/tasks/${taskId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        // Adicione headers de autenticação, se necessário
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Erro ao excluir a tarefa com ID ${taskId}: ${response.statusText}`);
+      }
+      // A tarefa foi excluída com sucesso
+      console.log(`Tarefa com ID ${taskId} excluída com sucesso.`);
+    })
+    .catch(error => {
+      console.error(`Erro ao excluir a tarefa com ID ${taskId}: ${error}`);
+    });
+  };
+
+  const handleSave = () => {
+    // Aqui você pode enviar os dados editados da tarefa para o servidor
+    // Você pode usar fetch ou uma biblioteca como axios para fazer a requisição HTTP
+    // Exemplo de como enviar os dados da tarefa editada para o servidor:
+    const dadosEditados = {
+      data: inputData,
+      descricao: descricao,
+      categoria: categoriaSelecionada,
+      prioridade: prioridadeSelecionada
+    };
+
+    // Substitua a URL pela URL real da sua API e o método pela ação adequada (PUT ou PATCH)
+    fetch(`http://10.0.0.100/tasks/${taskId}`, {
+      method: 'PUT', // ou 'PATCH' dependendo da sua API
+      headers: {
+        'Content-Type': 'application/json',
+        // Adicione headers de autenticação, se necessário
+      },
+      body: JSON.stringify(dadosEditados)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Erro ao salvar a tarefa com ID ${taskId}: ${response.statusText}`);
+      }
+      // Tarefa editada com sucesso
+      console.log(`Tarefa com ID ${taskId} editada com sucesso.`);
+      // Navegar de volta para a tela anterior após salvar
+      nav.goBack();
+    })
+    .catch(error => {
+      console.error(`Erro ao salvar a tarefa com ID ${taskId}: ${error}`);
+    });
+  };
+  
+  // Evento de clique que chama handleDeleteTask
+  const handleClickDelete = () => {
+    // Supondo que taskId seja obtido de algum lugar
+    const taskId = 123; // Exemplo de um ID de tarefa válido
+  
+    // Verificar se taskId é válido antes de chamar handleDeleteTask
+    if (taskId) {
+      handleDeleteTask(taskId);
+    } else {
+      console.error("ID da tarefa inválido",);
+    }
+  };
   return (
     <View style={style.newContainer}>
       <Button
@@ -126,7 +201,7 @@ export default function TarefaAberta() {
               <Image source={require("../assets/images/delete-button.png")} />
             </Pressable>
             {/* botao para salvar a tarefa editada */}
-            <Pressable>
+            <Pressable onPress={handleSave}>
               <Image source={require("../assets/images/save-button.png")} />
             </Pressable>
           </View>
@@ -155,7 +230,13 @@ export default function TarefaAberta() {
                   >
                     <Text style={modal.btnText}>Cancelar</Text>
                   </Pressable>
-                  <Pressable style={modal.confirmlBtn}>
+                  <Pressable
+                    onPress={() => {
+                      handleDeleteTask(taskId);
+                      nav.navigate("home");
+                    }}
+                    style={modal.confirmlBtn}
+                  >
                     <Text style={modal.btnText}>Excluir</Text>
                   </Pressable>
                 </View>
@@ -166,7 +247,7 @@ export default function TarefaAberta() {
       </View>
     </View>
   );
-}
+};
 
 //style geral
 const style = StyleSheet.create({

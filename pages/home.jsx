@@ -5,7 +5,6 @@ import {
 } from "react-native";
 
 import Logo from "../components/logo";
-import Menu from "../components/menuOp";
 import { Button, Icon } from "react-native-elements";
 import { useNavigation } from "@react-navigation/native";
 import Tarefa from "../components/cards/tarefa";
@@ -17,7 +16,6 @@ export default function Home({}) {
     <>
       <View>
         <Logo />
-        <Menu />
         <View style={style.divider} />
         <View style={style.backgroundContainer}>
           {/* <Text style={style.backgroundText}>Parece que você ainda não adicionou nenhuma tarefa!</Text> */}
@@ -27,11 +25,6 @@ export default function Home({}) {
                 <Tarefa/>
               
             </>
-          
-              
-          
-          
-
           <Button
             title="Adicionar Tarefa"
             icon={<Icon name="add" size={25} color="#FFF" />}

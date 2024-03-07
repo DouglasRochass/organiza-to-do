@@ -103,7 +103,7 @@
 
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native"; // Importe TouchableOpacity para tornar a View clicável
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { getTasks } from "../.././service/tarefas";
 import { axios } from "axios";
 
@@ -111,11 +111,11 @@ import { axios } from "axios";
 export default function Tarefa() {
   const [error, setError] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [tarefas, setTarefas] = useState({ tasks: [] });
+  const [tarefas, setTarefas] = useState([]);
   const nav = useNavigation();
 
-  useEffect(() => {
-    fetch("https://encouraging-blue-bee.cyclic.app/tasks")
+  const fetchTarefas = () => {
+    fetch("http://10.0.0.100:4000/tasks")
       .then(response => {
         if (!response.ok) {
           throw new Error('Erro ao buscar tarefas');
@@ -123,28 +123,34 @@ export default function Tarefa() {
         return response.json();
       })
       .then(data => {
-        // Remover informações de hora das datas
-        const tarefasComDataAjustada = data.tasks.map(tarefa => ({
-          ...tarefa,
-          data: tarefa.data.split('T')[0] // Mantém apenas a parte da data
-          
-        }));
-        setIsLoaded(true);
-        setTarefas(prevTarefas => ({
-          tasks: [...prevTarefas.tasks, ...tarefasComDataAjustada]
-        }));
+        console.log("Received data:", data);
+        if (!data || !data.tasks) {
+          throw new Error('Data or tasks are undefined');
+        }
+        setTarefas(data.tasks); // Definindo as tarefas recebidas do servidor
+        setIsLoaded(true); // Marcando que os dados foram carregados com sucesso
       })
       .catch(error => {
+        console.error('Error fetching tasks:', error);
         setError(error);
         setIsLoaded(true);
       });
-  }, []);
+  };
+
+  // useEffect para carregar as tarefas quando o componente é montado
   useEffect(() => {
-    console.log('Tarefas atualizadas:', tarefas);
-  }, [tarefas]);
+    fetchTarefas();
+  }, []);
+
+  // useFocusEffect para recarregar as tarefas toda vez que a tela entra em foco
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchTarefas();
+    }, [])
+  );
 
   const navigateToTarefaAberta = (tarefa) => {
-    nav.navigate("tarefaAberta");
+    nav.navigate("tarefaAberta", { taskId: tarefa.id });
   };
 
   console.log("Error:", error);
@@ -155,10 +161,10 @@ export default function Tarefa() {
     return <View><Text>Erro: {error.message}</Text></View>;
   } else if (!isLoaded) {
     return <View><Text style={style.backgroundText}>Carregando...</Text></View>;
-  } else if (tarefas.tasks.length > 0) {
+  } else if (tarefas.length > 0) {
     return (
       <ScrollView>
-        {tarefas.tasks.map((tarefa, index) => (
+        {tarefas.map((tarefa, index) => (
           <TouchableOpacity key={index} onPress={() => navigateToTarefaAberta(tarefa)}>
             <View style={style.cardContainer}>
               <View style={style.nameContainer}>

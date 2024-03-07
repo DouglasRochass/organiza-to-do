@@ -31,7 +31,7 @@ export default function AddTarefa() {
       };
 
       // Enviar os dados para a API
-      const response = await fetch("https://encouraging-blue-bee.cyclic.app/task", {
+      const response = await fetch("http://10.0.0.100:4000/task", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,7 +40,7 @@ export default function AddTarefa() {
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao adicionar tarefa",);
+        throw new Error("Erro ao adicionar tarefa", error);
       }
 
       // Se a tarefa for adicionada com sucesso, navegar de volta para a tela inicial
